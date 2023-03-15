@@ -22,7 +22,10 @@ import pickle
 sys.path.append(os.path.abspath(os.path.join('.','./CMAPSSData/')))
 
 
-from utils import rename_col, add_rul, minmax_dic, minmax_scl,smooth, smoothing, drop_org
+from utils import rename_col, add_rul, \
+        minmax_dic, minmax_scl,smooth, \
+            smoothing, drop_org, \
+            LSTMRegressor, device, learning_rate, n_hidden_units
 
 
 def validation():
@@ -90,34 +93,6 @@ class test(Dataset):
         
         return X_, y_
     
-class LSTMRegressor(nn.Module):
-    
-    def __init__(self, n_features, hidden_units):
-        super().__init__()
-        self.n_features = n_features
-        self.hidden_units = hidden_units
-        self.n_layers = 1
-        self.lstm = nn.LSTM(input_size = n_features, hidden_size = self.hidden_units, batch_first = True, num_layers = self.n_layers)
-        self.linear1 = nn.Linear(in_features=self.hidden_units, out_features=12)
-        self.relu1 = nn.ReLU()
-        self.linear2 = nn.Linear(in_features=12, out_features=12)
-        self.relu2 = nn.ReLU()
-        self.linear3 = nn.Linear(in_features=12, out_features=1)
-        
-    def forward(self, x):
-        batch_size = x.shape[0]
-        h0 = torch.zeros(self.n_layers, batch_size, self.hidden_units).requires_grad_()
-        c0 = torch.zeros(self.n_layers, batch_size, self.hidden_units).requires_grad_()
-        
-        _, (hn, _) = self.lstm(x, (h0, c0))
-        out = self.linear1(hn[0])
-        out = self.relu1(out)
-        out = self.linear2(out)
-        out = self.relu2(out)
-        out = self.linear3(out).flatten()
-        return out
-    
-
 
 if __name__=="__main__":
 
@@ -179,10 +154,7 @@ if __name__=="__main__":
     valloader = DataLoader(val, batch_size = len(val_indices), shuffle = True)
     testloader = DataLoader(test, batch_size = 100)
 
-    # LSTM model building
-    device='cpu'
-    learning_rate = 0.001
-    n_hidden_units = 12
+    
 
     torch.manual_seed(15)
 
@@ -235,16 +207,17 @@ if __name__=="__main__":
             model.train()
 
 
+
     #fout_name = "model230310.joblib"
 
 
-    joblib.dump(model, open("jbl230312.joblib", "wb"))
+    #joblib.dump(model, open("jbl230312.joblib", "wb"))
     #model=joblib.load(open("jbl230312.joblib", "rb"))
 
-    pickle.dump(model, open("pkl230312a.pkl", "wb"))
+    #pickle.dump(model, open("pkl230312a.pkl", "wb"))
     #model=pickle.load(open("pkl230312a.pkl", "rb"))
 
-    joblib.dump(model, 'pkl230312b.pkl.pkl')
+    #joblib.dump(model, 'pkl230312b.pkl.pkl')
     #model = joblib.load('pkl230312b.pkl.pkl')
 
 
@@ -252,6 +225,9 @@ if __name__=="__main__":
     
     #joblib.dump(model, fout_name)
 
+
+    model_path = "model2140_1.pt"
+    torch.save(model.state_dict(), model_path)
     mse, l1, y_pred, y = test_model(model, testloader, device)
 
     print(f'Test MSE:{round(mse,2)}, L1:{round(l1,2)}')

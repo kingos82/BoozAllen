@@ -6,15 +6,22 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 import pandas as pd
-
+import torch 
+from scripts.utils import LSTMRegressor, device, learning_rate, n_hidden_units
 ################ DATA PREPROCESSING ################
 
+<<<<<<< HEAD
 #model=joblib.load('/home/kingos82/Fourthbrain/BoozAllen/model2140.joblib')
 
 
 df_test = pd.read_csv("/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD001.txt", header=None, sep = ' ')
 df_train = pd.read_csv("/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD001.txt", header=None, sep = ' ')
+=======
 
+# Read data
+df_test = pd.read_csv("d:/Documents-folders/GitHub/BoozAllen/CMAPSSData/test_FD001.txt", header=None, sep = ' ')
+df_train = pd.read_csv("d:/Documents-folders/GitHub/BoozAllen/CMAPSSData/train_FD001.txt", header=None, sep = ' ')
+>>>>>>> 41c30be205b6cd30908043a76f98e45d71cc1ad1
 
 
 ## Refactor data wrangling commands
@@ -44,7 +51,20 @@ df_test=smoothing(df_test)
 df_train=drop_org(df_train)
 df_test=drop_org(df_test)
 
+<<<<<<< HEAD
 #y = model.predict(df_test.iloc[0:1,2:])
+=======
+# Instantiate the model
+n_features = len([c for c in df_train.columns if 's' in c])
+loaded_model = LSTMRegressor(n_features, n_hidden_units)
+
+# Load the saved state_dict
+model_path = "model2140_1.pt"
+loaded_model.load_state_dict(torch.load(model_path))
+
+
+y = loaded_model.predict(df_test.iloc[0:1,2:])
+>>>>>>> 41c30be205b6cd30908043a76f98e45d71cc1ad1
 ############# APP LAYOUT #############
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
