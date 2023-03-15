@@ -9,11 +9,11 @@ import pandas as pd
 
 ################ DATA PREPROCESSING ################
 
-model=joblib.load('d:/Documents-folders/GitHub/BoozAllen/model2140.joblib')
+#model=joblib.load('/home/kingos82/Fourthbrain/BoozAllen/model2140.joblib')
 
 
-df_test = pd.read_csv("d:/Documents-folders/GitHub/BoozAllen/CMAPSSData/test_FD001.txt", header=None, sep = ' ')
-df_train = pd.read_csv("d:/Documents-folders/GitHub/BoozAllen/CMAPSSData/train_FD001.txt", header=None, sep = ' ')
+df_test = pd.read_csv("/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD001.txt", header=None, sep = ' ')
+df_train = pd.read_csv("/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD001.txt", header=None, sep = ' ')
 
 
 
@@ -44,7 +44,7 @@ df_test=smoothing(df_test)
 df_train=drop_org(df_train)
 df_test=drop_org(df_test)
 
-y = model.predict(df_test.iloc[0:1,2:])
+#y = model.predict(df_test.iloc[0:1,2:])
 ############# APP LAYOUT #############
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
