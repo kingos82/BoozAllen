@@ -207,6 +207,25 @@ if __name__=="__main__":
             model.train()
 
 
+
+    #fout_name = "model230310.joblib"
+
+
+    #joblib.dump(model, open("jbl230312.joblib", "wb"))
+    #model=joblib.load(open("jbl230312.joblib", "rb"))
+
+    #pickle.dump(model, open("pkl230312a.pkl", "wb"))
+    #model=pickle.load(open("pkl230312a.pkl", "rb"))
+
+    #joblib.dump(model, 'pkl230312b.pkl.pkl')
+    #model = joblib.load('pkl230312b.pkl.pkl')
+
+
+    
+    
+    #joblib.dump(model, fout_name)
+
+
     model_path = "model2140_1.pt"
     torch.save(model.state_dict(), model_path)
     mse, l1, y_pred, y = test_model(model, testloader, device)

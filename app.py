@@ -11,9 +11,9 @@ from scripts.utils import LSTMRegressor, device, learning_rate, n_hidden_units
 ################ DATA PREPROCESSING ################
 
 
-# Read data
-df_test = pd.read_csv("d:/Documents-folders/GitHub/BoozAllen/CMAPSSData/test_FD001.txt", header=None, sep = ' ')
-df_train = pd.read_csv("d:/Documents-folders/GitHub/BoozAllen/CMAPSSData/train_FD001.txt", header=None, sep = ' ')
+df_test = pd.read_csv("/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD001.txt", header=None, sep = ' ')
+df_train = pd.read_csv("/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD001.txt", header=None, sep = ' ')
+
 
 
 ## Refactor data wrangling commands
@@ -42,6 +42,7 @@ df_test=smoothing(df_test)
 #drop original data
 df_train=drop_org(df_train)
 df_test=drop_org(df_test)
+
 
 # Instantiate the model
 n_features = len([c for c in df_train.columns if 's' in c])
