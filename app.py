@@ -51,37 +51,77 @@ loaded_model = LSTMRegressor(n_features, n_hidden_units)
 model_path = "model2140_1.pt"
 loaded_model.load_state_dict(torch.load(model_path))
 
-
-y = loaded_model.predict(df_test.iloc[0:1,2:])
 ############# APP LAYOUT #############
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-# Intialize app
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets, title="Engine prediction")
+# Define the Dash app
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
-app.layout=html.Div(
-    children=[html.H2('RUL',),
-    dcc.Dropdown(
-        id='dropdown',
-        options=[
-            {'label': 'Engine 1', 'value': '1'},
-            {'label': 'Engine 2', 'value': '2'},
-            {'label': 'Engine 3', 'value': '3'},
-            {'label': 'Engine 4', 'value': '4'},
-            {'label': 'Engine 5', 'value': '5'}]),
-    dcc.Graph(id='graph')
+# Define the layout of the app
+app.layout = dbc.Container([
+    dbc.Row([
+        dbc.Col(html.H1("Remaining Useful Life Prediction", className="text-center"))
+    ]),
+    dbc.Row([
+        dbc.Col([
+            html.Label("Select a unit number:"),
+            dcc.Input(id="unit-input", type="number", value=1, min=1, max=len(df_test["unit"].unique())),
+            html.Br(),
+            dbc.Button("Predict RUL", id="predict-button", color="primary", className="mt-3")
+        ], width=6, xs=12),
+        dbc.Col([
+            dcc.Graph(id="rul-graph")
+        ], width=6, xs=12)
+    ], className="mt-4")
+])
 
-    ]
-)
-
+# Define the callback function for the predict button
 @app.callback(
-    Output('graph', 'figure'),
-    Input('dropdown', 'value')
+    Output("rul-graph", "figure"),
+    Input("predict-button", "n_clicks"),
+    Input("unit-input", "value")
 )
-def generate_plot(value):
-    fig = px.line(x=df_test['time'], y=df_test['rul'])
-    return fig
+def predict_rul(n_clicks, unit):
+    if n_clicks:
+        # Get the data for the selected unit
+        unit_data = df_test[df_test["unit"] == unit].copy()
+        unit_data = unit_data.reset_index(drop=True)
+
+        # Get the initial sensor readings for the unit
+        x = unit_data.iloc[0, :-2].values.reshape(1, -1)
+        x = torch.tensor(x, dtype=torch.float32).to(device)
+
+        # Modify the input shape to add a batch size dimension
+        x = x.unsqueeze(0)
+
+        # Initialize the hidden state and cell state with batch size of 1
+        hx = torch.zeros(1, 1, n_hidden_units).to(device)
+        cx = torch.zeros(1, 1, n_hidden_units).to(device)
+
+        # Predict the RUL for each timestep in the unit
+        predictions = []
+        for i in range(len(unit_data)):
+            with torch.no_grad():
+                y, (hx, cx) = loaded_model(x, hx, cx)
+                y = y.cpu().numpy()[0][0]
+                predictions.append(y)
+
+            # Update the input sequence with the latest sensor readings
+            x = torch.tensor(unit_data.iloc[i, :-2].values.reshape(1, -1), dtype=torch.float32).to(device)
+            x = x.unsqueeze(0)
+
+        # Add the predicted RUL to the unit data
+        unit_data["rul_predicted"] = predictions
+
+        # Create a line chart of the predicted RUL
+        fig = px.line(unit_data, x="time_in_cycles", y="rul_predicted")
+
+        return fig
+
+    else:
+        # Return an empty figure if the button has not been clicked yet
+        return {}
 if __name__ == '__main__':
 
     app.run_server(debug=True)
