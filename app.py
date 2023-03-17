@@ -43,7 +43,6 @@ df_test=smoothing(df_test)
 df_train=drop_org(df_train)
 df_test=drop_org(df_test)
 
-
 # Instantiate the model
 n_features = len([c for c in df_train.columns if 's' in c])
 loaded_model = LSTMRegressor(n_features, n_hidden_units)
