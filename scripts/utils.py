@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import torch.nn as nn
 import torch
+from torch.utils.data import Dataset
 
 # LSTM model building
 device='cpu'
@@ -34,6 +35,27 @@ class LSTMRegressor(nn.Module):
         out = self.relu2(out)
         out = self.linear3(out).flatten()
         return out
+    
+class test(Dataset):
+    
+    def __init__(self, units, df_test):
+        
+        self.units = units
+        self.df_test = df_test
+        
+    def __len__(self):
+        
+        return len(self.units)
+    
+    def __getitem__(self, idx):
+        
+        n = self.units[idx]
+        U = self.df_test[self.df_test['unit'] == n].copy()
+        X_ = U.reset_index().iloc[-20:,:].drop(['index','unit','time','rul'], axis = 1).copy().to_numpy()
+        y_ = U['rul'].min()
+        
+        return X_, y_
+    
 
 def rename_col(df):
     '''
@@ -60,7 +82,7 @@ def add_rul(df, test_or_train):
 
     df = df.copy()
 
-    for n in np.arange(1,101):
+    for n in np.arange(1, df['unit'].max()+1):
 
         time_list = np.array(df[df['unit'] == n]['time'])
         length = len(time_list)
@@ -119,11 +141,12 @@ def smoothing(df):
     '''
     Smoothing each time series for each engine in both training and test sets
     '''
+
     df = df.copy()
     for c in df.columns:
         sm_list = []
         if 's' in c:
-            for n in np.arange(1,101):
+            for n in np.arange(1,df['unit'].max()+1):
                 s = np.array(df[df['unit'] == n][c].copy())
                 sm = list(smooth(s, 0.98))
                 sm_list += sm
@@ -140,3 +163,17 @@ def drop_org(df):
             df[c] = df[c+'_smoothed']
             df.drop(c+'_smoothed', axis = 1, inplace = True)
     return df
+
+def test_model(model, testloader, device):
+    loss_L1 = nn.L1Loss()
+    loss_fn = nn.MSELoss()
+    model.eval()
+    X, y = next(iter(testloader))
+    X, y = X.to(device).to(torch.float32), y.to(device).to(torch.float32)
+    
+    with torch.no_grad():
+        y_pred = model(X)
+        test_loss_MSE = loss_fn(y_pred, y).item()
+        test_loss_L1 = loss_L1(y_pred, y).item()
+        
+    return test_loss_MSE, test_loss_L1,  y_pred, y

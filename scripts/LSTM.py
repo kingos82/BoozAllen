@@ -18,6 +18,7 @@ import os
 import sys
 import joblib
 import pickle
+import math
 
 sys.path.append(os.path.abspath(os.path.join('.','./CMAPSSData/')))
 
@@ -25,7 +26,7 @@ sys.path.append(os.path.abspath(os.path.join('.','./CMAPSSData/')))
 from utils import rename_col, add_rul, \
         minmax_dic, minmax_scl,smooth, \
             smoothing, drop_org, \
-            LSTMRegressor, device, learning_rate, n_hidden_units
+            LSTMRegressor, device, learning_rate, n_hidden_units, test, test_model
 
 
 def validation():
@@ -40,18 +41,7 @@ def validation():
     return val_loss
 
 
-def test_model(model, testloader, device):
-    loss_L1 = nn.L1Loss()
-    model.eval()
-    X, y = next(iter(testloader))
-    X, y = X.to(device).to(torch.float32), y.to(device).to(torch.float32)
-    
-    with torch.no_grad():
-        y_pred = model(X)
-        test_loss_MSE = loss_fn(y_pred, y).item()
-        test_loss_L1 = loss_L1(y_pred, y).item()
-        
-    return test_loss_MSE, test_loss_L1,  y_pred, y
+
 
 class data(Dataset):
     
@@ -73,32 +63,13 @@ class data(Dataset):
         return X_, y_
     
 
-class test(Dataset):
-    
-    def __init__(self, units, df_test):
-        
-        self.units = units
-        self.df_test = df_test
-        
-    def __len__(self):
-        
-        return len(self.units)
-    
-    def __getitem__(self, idx):
-        
-        n = self.units[idx]
-        U = self.df_test[self.df_test['unit'] == n].copy()
-        X_ = U.reset_index().iloc[-20:,:].drop(['index','unit','time','rul'], axis = 1).copy().to_numpy()
-        y_ = U['rul'].min()
-        
-        return X_, y_
-    
+
 
 if __name__=="__main__":
 
-    df_train = pd.read_csv("./CMAPSSData/train_FD001.txt", header=None, sep = ' ')
-    df_test = pd.read_csv("./CMAPSSData/test_FD001.txt", header=None, sep = ' ')
-    rul_test = pd.read_csv("./CMAPSSData/RUL_FD001.txt", header=None)
+    df_train = pd.read_csv("./CMAPSSData/train_FD004.txt", header=None, sep = ' ')
+    df_test = pd.read_csv("./CMAPSSData/test_FD004.txt", header=None, sep = ' ')
+    rul_test = pd.read_csv("./CMAPSSData/RUL_FD004.txt", header=None)
 
 
     ## Refactor data wrangling commands
@@ -133,8 +104,9 @@ if __name__=="__main__":
 
     #splitting train and validation datasets
     np.random.seed(5)
-    units = np.arange(1,101)
-    train_units = list(np.random.choice(units, 80, replace = False))
+    eng_num=df_train['unit'].max()+1
+    units = np.arange(1,eng_num)
+    train_units = list(np.random.choice(units, round(0.8*eng_num), replace = False))
     val_units = list(set(units) - set(train_units))
     print('validation units:', val_units)
 
@@ -147,12 +119,12 @@ if __name__=="__main__":
 
     train = data(train_indices, df_train)
     val = data(val_indices, df_train)
-    test = test(units, df_test)
+    test_data = test(units, df_test)
 
     torch.manual_seed(5)
     trainloader = DataLoader(train, batch_size = 64, shuffle = True)
     valloader = DataLoader(val, batch_size = len(val_indices), shuffle = True)
-    testloader = DataLoader(test, batch_size = 100)
+    testloader = DataLoader(test_data, batch_size = 100)
 
     
 
@@ -226,7 +198,7 @@ if __name__=="__main__":
     #joblib.dump(model, fout_name)
 
 
-    model_path = "model2140_1.pt"
+    model_path = "model2140_4.pt"
     torch.save(model.state_dict(), model_path)
     mse, l1, y_pred, y = test_model(model, testloader, device)
 
