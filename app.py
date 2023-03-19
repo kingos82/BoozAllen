@@ -11,10 +11,6 @@ from scripts.utils import LSTMRegressor, device, learning_rate, n_hidden_units
 import plotly.graph_objects as go
 import numpy as np
 ################ DATA PREPROCESSING ################
-
-
-
-
 def plt_rlu(y, y_pred):
     fig = go.Figure()
 
@@ -40,45 +36,40 @@ def plt_rlu(y, y_pred):
 
 def choose_model(input):
     if input =="model1":
-        model_path="/home/kingos82/Fourthbrain/BoozAllen/model2140_1.pt"
-        train_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD001.txt"
+        model_path="./model2140_1.pt"
+        train_path="./CMAPSSData/train_FD001.txt"
     elif input=='model2':
-        model_path="/home/kingos82/Fourthbrain/BoozAllen/model2140_2.pt"
-        train_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD002.txt"
+        model_path="./model2140_2.pt"
+        train_path="./CMAPSSData/train_FD002.txt"
     elif input=='model3':
-        model_path="/home/kingos82/Fourthbrain/BoozAllen/model2140_3.pt"
-        train_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD003.txt"
+        model_path="./model2140_3.pt"
+        train_path="./CMAPSSData/train_FD003.txt"
     elif input=='model4':
-        model_path="/home/kingos82/Fourthbrain/BoozAllen/model2140_4.pt"
-        train_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD004.txt"
+        model_path="./model2140_4.pt"
+        train_path="./CMAPSSData/train_FD004.txt"
     return model_path, train_path
 
 
 
 def choose_test(input):
     if input =="test1":
-        test_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD001.txt"
-        RLU_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/RUL_FD001.txt"
+        test_path="./CMAPSSData/test_FD001.txt"
+        RLU_path="./CMAPSSData/RUL_FD001.txt"
     elif input=='test2':
-        test_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD002.txt"
-        RLU_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/RUL_FD002.txt"
+        test_path="./CMAPSSData/test_FD002.txt"
+        RLU_path="./CMAPSSData/RUL_FD002.txt"
     elif input=='test3':
-        test_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD003.txt"
-        RLU_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/RUL_FD003.txt"
+        test_path="./CMAPSSData/test_FD003.txt"
+        RLU_path="./CMAPSSData/RUL_FD003.txt"
     elif input=='test4':
-        test_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD004.txt"
-        RLU_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/RUL_FD004.txt"
+        test_path="./CMAPSSData/test_FD004.txt"
+        RLU_path="./CMAPSSData/RUL_FD004.txt"
     return test_path, RLU_path
 
 
 
-
-
-
-df_test = pd.read_csv("/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD001.txt", header=None, sep = ' ')
-df_train = pd.read_csv("/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD001.txt", header=None, sep = ' ')
-
-
+df_test = pd.read_csv("./CMAPSSData/test_FD001.txt", header=None, sep = ' ')
+df_train = pd.read_csv("./CMAPSSData/train_FD001.txt", header=None, sep = ' ')
 
 ## Refactor data wrangling commands
 df_train=rename_col(df_train)
@@ -116,7 +107,6 @@ model_path = "model2140_1.pt"
 loaded_model.load_state_dict(torch.load(model_path))
 
 ############# APP LAYOUT #############
-
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 # Define the Dash app
@@ -130,13 +120,12 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.Label("Select a unit number:"),
-            #dcc.Input(id="unit-input", type="number", value=1, min=1, max=len(df_test["unit"].unique())),
-            #html.Br(),
-            dbc.Dropdown(
+            dcc.Dropdown(
                 id='y',
                 options=['model1', 'model2', 'model3', 'model4'],
                 value='model')
-                ],className="six_columns"),
+                ],className="six_columns"
+                ),
         dbc.Col([
             html.Label("select test data:"),
             dcc.Dropdown(
@@ -148,7 +137,7 @@ app.layout = dbc.Container([
         dbc.Col([
             dcc.Graph(id="rul-graph")
             ], className="four columns")
-    , className="row",
+
 ])
 
 @app.callback(
