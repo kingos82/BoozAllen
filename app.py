@@ -8,7 +8,71 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import torch 
 from scripts.utils import LSTMRegressor, device, learning_rate, n_hidden_units
+import plotly.graph_objects as go
+import numpy as np
 ################ DATA PREPROCESSING ################
+
+
+
+
+def plt_rlu(y, y_pred):
+    fig = go.Figure()
+
+    fig.add_trace(
+    go.Scatter(
+        x =np.arange(len(y_pred)),
+        y = y_pred,
+        mode = 'lines', # Change the mode in this section!
+        name='prediction'
+        )
+    )
+
+    fig.add_trace(
+    go.Scatter(
+        x =np.arange(len(y)),
+        y = y,
+        mode = 'lines', # Change the mode in this section!
+        name='True'
+        )
+    )
+    return fig
+
+
+def choose_model(input):
+    if input =="model1":
+        model_path="/home/kingos82/Fourthbrain/BoozAllen/model2140_1.pt"
+        train_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD001.txt"
+    elif input=='model2':
+        model_path="/home/kingos82/Fourthbrain/BoozAllen/model2140_2.pt"
+        train_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD002.txt"
+    elif input=='model3':
+        model_path="/home/kingos82/Fourthbrain/BoozAllen/model2140_3.pt"
+        train_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD003.txt"
+    elif input=='model4':
+        model_path="/home/kingos82/Fourthbrain/BoozAllen/model2140_4.pt"
+        train_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/train_FD004.txt"
+    return model_path, train_path
+
+
+
+def choose_test(input):
+    if input =="test1":
+        test_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD001.txt"
+        RLU_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/RUL_FD001.txt"
+    elif input=='test2':
+        test_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD002.txt"
+        RLU_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/RUL_FD002.txt"
+    elif input=='test3':
+        test_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD003.txt"
+        RLU_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/RUL_FD003.txt"
+    elif input=='test4':
+        test_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD004.txt"
+        RLU_path="/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/RUL_FD004.txt"
+    return test_path, RLU_path
+
+
+
+
 
 
 df_test = pd.read_csv("/home/kingos82/Fourthbrain/BoozAllen/CMAPSSData/test_FD001.txt", header=None, sep = ' ')
@@ -66,62 +130,36 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.Label("Select a unit number:"),
-            dcc.Input(id="unit-input", type="number", value=1, min=1, max=len(df_test["unit"].unique())),
-            html.Br(),
-            dbc.Button("Predict RUL", id="predict-button", color="primary", className="mt-3")
-        ], width=6, xs=12),
+            #dcc.Input(id="unit-input", type="number", value=1, min=1, max=len(df_test["unit"].unique())),
+            #html.Br(),
+            dbc.Dropdown(
+                id='y',
+                options=['model1', 'model2', 'model3', 'model4'],
+                value='model')
+                ],className="six_columns"),
+        dbc.Col([
+            html.Label("select test data:"),
+            dcc.Dropdown(
+                id='y_pred',
+                options=['test1', 'test2', 'test3', 'test4'],
+                value='test data'),
+                ], className="six columns"),
+            ], className='row'),
         dbc.Col([
             dcc.Graph(id="rul-graph")
-        ], width=6, xs=12)
-    ], className="mt-4")
+            ], className="four columns")
+    , className="row",
 ])
 
-# Define the callback function for the predict button
 @app.callback(
-    Output("rul-graph", "figure"),
-    Input("predict-button", "n_clicks"),
-    Input("unit-input", "value")
-)
-def predict_rul(n_clicks, unit):
-    if n_clicks:
-        # Get the data for the selected unit
-        unit_data = df_test[df_test["unit"] == unit].copy()
-        unit_data = unit_data.reset_index(drop=True)
+        Output("rul_graph", "figure"),
+        Input('y', 'value'),
+        Input("y_pred", 'value'))
+def update_figure(y, y_pred):
+    fig = plt_rlu(y, y_pred)
+    return fig
 
-        # Get the initial sensor readings for the unit
-        x = unit_data.iloc[0, :-2].values.reshape(1, -1)
-        x = torch.tensor(x, dtype=torch.float32).to(device)
 
-        # Modify the input shape to add a batch size dimension
-        x = x.unsqueeze(0)
-
-        # Initialize the hidden state and cell state with batch size of 1
-        hx = torch.zeros(1, 1, n_hidden_units).to(device)
-        cx = torch.zeros(1, 1, n_hidden_units).to(device)
-
-        # Predict the RUL for each timestep in the unit
-        predictions = []
-        for i in range(len(unit_data)):
-            with torch.no_grad():
-                y, (hx, cx) = loaded_model(x, hx, cx)
-                y = y.cpu().numpy()[0][0]
-                predictions.append(y)
-
-            # Update the input sequence with the latest sensor readings
-            x = torch.tensor(unit_data.iloc[i, :-2].values.reshape(1, -1), dtype=torch.float32).to(device)
-            x = x.unsqueeze(0)
-
-        # Add the predicted RUL to the unit data
-        unit_data["rul_predicted"] = predictions
-
-        # Create a line chart of the predicted RUL
-        fig = px.line(unit_data, x="time_in_cycles", y="rul_predicted")
-
-        return fig
-
-    else:
-        # Return an empty figure if the button has not been clicked yet
-        return {}
 if __name__ == '__main__':
 
     app.run_server(debug=True)
