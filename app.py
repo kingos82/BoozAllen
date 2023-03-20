@@ -159,7 +159,7 @@ app.layout = dbc.Container([
     ]),
     dbc.Row([
         dbc.Col([
-            html.Label("Select a unit number:"),
+            html.Label("Select a model traind on data:"),
             dcc.Dropdown(
                 id='model-n',
                 options=['model1', 'model2', 'model3', 'model4'],
