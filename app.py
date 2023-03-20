@@ -48,7 +48,7 @@ def choose_test(input):
     return test_path, RLU_path
 
 
-def plt_rlu(y, y_pred):
+def plt_rlu(y, y_pred, mse):
     fig = go.Figure()
 
     fig.add_trace(
@@ -68,10 +68,11 @@ def plt_rlu(y, y_pred):
         name='True'
         )
     )
-
+    #mse_ttl=['MSE='+str(mse)]
     # Update figure to have title
     fig.update_layout(
-        title="RUL prediction",
+        #title="RUL prediction MSE",
+        title=f"MSE={mse}",
         xaxis_title="Number of units",
         yaxis_title="RUL",
         font=dict(
@@ -82,14 +83,19 @@ def plt_rlu(y, y_pred):
     
     return fig
 
-def wrangle_data(input_path): 
-
+def wrangle_data(input_path, train_or_test): 
         
     df = pd.read_csv(Path(input_path), header=None, sep = ' ')
-    
+
+    i_df=df.loc[df[0]>100].index
+    df.drop(i_df)
+
     ## Refactor data wrangling commands
     df=rename_col(df)
-    df=add_rul(df, 'train')
+    if train_or_test=='train':
+        df=add_rul(df, 'train')
+    elif train_or_test=='test':
+        df=add_rul(df, 'test')
 
     #Drop os3, s1, s5, s6, s10, s16, s18, s19 from both train and test
     drop_cols1 = ['os3','s1','s5','s6','s10','s16','s18','s19']
@@ -112,8 +118,8 @@ def get_y_true_and_pred(model_input, test_input):
     model_path, train_path = choose_model(model_input)
     test_path, RUL_path = choose_test(test_input)
 
-    df_train = wrangle_data(train_path)
-    df_test = wrangle_data(test_path)
+    df_train = wrangle_data(train_path, 'train')
+    df_test = wrangle_data(test_path, 'test')
 
     # Instantiate the model
     n_features = len([c for c in df_train.columns if 's' in c])
@@ -135,8 +141,10 @@ def get_y_true_and_pred(model_input, test_input):
 
     df_RUL = pd.read_csv(Path(RUL_path), header=None, sep = ' ')
     y=df_RUL[0].to_list()
+    y=y[:100]
+    mse=np.mean(np.square(y_pred.numpy()-y))
 
-    return y, y_pred
+    return y, y_pred, mse
 
 ############# APP LAYOUT #############
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -178,8 +186,8 @@ app.layout = dbc.Container([
         Input("test-n", 'value'))
 def update_figure(model_n, test_n):
     print(model_n, test_n)
-    y, y_pred = get_y_true_and_pred(model_n, test_n)
-    fig = plt_rlu(y, y_pred)
+    y, y_pred, mse = get_y_true_and_pred(model_n, test_n)
+    fig = plt_rlu(y, y_pred, mse)
     return fig
 
 
