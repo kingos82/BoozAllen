@@ -1,5 +1,5 @@
 anyio==3.6.2
-asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
+asttokens
 attrs==22.2.0
 backcall @ file:///home/ktietz/src/ci/backcall_1611930011877/work
 brotlipy==0.7.0
