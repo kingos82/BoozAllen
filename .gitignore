@@ -1,6 +1,7 @@
 *.h5
 *:Zone.Identifier
 *.Identifier
+*.pem
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
