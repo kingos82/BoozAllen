@@ -12,6 +12,10 @@
 ### The app is deployed on AWS instance through a a dash app: http://35.167.53.207:8050/
 
 ![image info]('Screenshot 2023-04-01 at 8.11.01 AM.png')
+<p align = "center" draggable=”false” ><img src="Screenshot 2023-04-01 at 8.11.01 AM.png"
+     width="200px"
+     height="auto"/>
+</p>
 
 
 
