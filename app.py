@@ -73,7 +73,7 @@ def plt_rlu(y, y_pred, mse):
     fig.update_layout(
         #title="RUL prediction MSE",
         title=f"MSE={mse}",
-        xaxis_title="Number of units",
+        xaxis_title="Engine number",
         yaxis_title="RUL",
         font=dict(
             size=18,
@@ -159,7 +159,7 @@ app.layout = dbc.Container([
     ]),
     dbc.Row([
         dbc.Col([
-            html.Label("Select a model traind on data:"),
+            html.Label("Select a model trained on data:"),
             dcc.Dropdown(
                 id='model-n',
                 options=['model1', 'model2', 'model3', 'model4'],
