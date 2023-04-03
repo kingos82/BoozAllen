@@ -11,11 +11,7 @@
 
 ### The app is deployed on AWS instance through a a dash app: http://35.167.53.207:8050/
 
-<p align = "center" draggable=”false” ><img src="Screenshot 2023-04-01 at 8.11.01 AM.png"
-     width="800px"
-     height="auto"/>
-</p>
-<p align = "center" draggable=”false” ><img src="Screenshot 2023-04-01 at 8.11.18 AM.png"
+<p align = "center" draggable=”false” ><img src="Screenshot 2023-04-02 at 10.21.00 PM.png"
      width="800px"
      height="auto"/>
 </p>
